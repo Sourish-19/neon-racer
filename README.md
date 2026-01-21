@@ -3,7 +3,7 @@
 > Use your head. Literally.
 > A next-gen synthwave infinite runner controlled by your webcam.
 
-![Menu Screen](/uploaded_image_1769003645323.png)
+![Menu Screen](./assets/Landing%20Page.png)
 
 ## Overview
 
@@ -22,7 +22,7 @@
     *   Grab **Power-ups** to gain improvements.
     *   Survive as long as possible to maximize your score.
 
-![Gameplay Action](/uploaded_image_1769004265390.png)
+![Gameplay Action](./assets/Game%20Interface.png)
 
 ## ⚡ Power-Ups
 
