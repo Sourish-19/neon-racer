@@ -1,0 +1,58 @@
+/* --- Health / Shield System --- */
+.health-display {
+    margin: 15px 0;
+}
+
+.shield-container {
+    display: flex;
+    gap: 5px;
+}
+
+.shield-bar {
+    width: 30px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid #555;
+    transform: skewX(-20deg);
+    transition: all 0.2s;
+}
+
+.shield-bar.active {
+    background: var(--primary);
+    border-color: #fff;
+    box-shadow: 0 0 10px var(--primary);
+}
+
+/* Damage Effect */
+.damage-shake {
+    animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+.damage-shake .scanlines {
+    background: rgba(255, 0, 0, 0.3) !important;
+    /* Red flash */
+}
+
+@keyframes shake {
+
+    10%,
+    90% {
+        transform: translate3d(-5px, 0, 0);
+    }
+
+    20%,
+    80% {
+        transform: translate3d(5px, 0, 0);
+    }
+
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-5px, 0, 0);
+    }
+
+    40%,
+    60% {
+        transform: translate3d(5px, 0, 0);
+    }
+}

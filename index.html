@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON RACER | Interactive Gesture Game</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css?v=18">
+
+    <!-- MediaPipe Face Mesh & Camera Utils -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <!-- Background Canvas (Game World) -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Scanline Effect Overlay -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+
+    <!-- MAIN MENU -->
+    <div id="mainMenu" class="ui-layer active">
+        <div class="menu-content">
+            <div class="brand-header">
+                <div class="logo-glitch" data-text="NEON RACER">NEON RACER</div>
+                <div class="version">V.1.0.4 // BETA</div>
+            </div>
+
+            <div class="menu-grid">
+                <div class="menu-left">
+                    <button id="btnStart" class="menu-btn primary" disabled>
+                        <span class="btn-text">INITIALIZE LINK</span>
+                        <span class="btn-sub" id="cameraStatus">WAITING FOR CAMERA...</span>
+                    </button>
+                    <!-- <button class="menu-btn">SETTINGS</button> -->
+                    <div class="high-score-box">
+                        <span class="label">RECORD DISTANCE</span>
+                        <span class="value" id="menuHighScore">00000</span>
+                    </div>
+                </div>
+
+                <div class="menu-right">
+                    <div class="info-panel">
+                        <h3>NEURAL LINK CONTROLS</h3>
+                        <div class="control-guide">
+                            <div class="guide-row">
+                                <span class="key">LEAN HEAD LEFT</span>
+                                <span class="arrow">←</span>
+                                <span class="action">SWITCH LEFT</span>
+                            </div>
+                            <div class="guide-row">
+                                <span class="key">HEAD CENTER</span>
+                                <span class="arrow">●</span>
+                                <span class="action">MAINTAIN LANE</span>
+                            </div>
+                            <div class="guide-row">
+                                <span class="key">LEAN HEAD RIGHT</span>
+                                <span class="arrow">→</span>
+                                <span class="action">SWITCH RIGHT</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-system">
+                SYSTEM STATUS: <span class="blink">ONLINE</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- IN-GAME HUD -->
+    <div id="gameHUD" class="ui-layer">
+        <div class="hud-top-left">
+            <div class="score-display">
+                <span class="label">SCORE</span>
+                <span id="scoreValue" class="value">0000</span>
+            </div>
+
+            <div class="coin-display">
+                <span class="label">COINS</span>
+                <span id="coinValue" class="value" style="color: #ffd700; text-shadow: 0 0 10px #ffd700;">0</span>
+            </div>
+
+            <div class="health-display">
+                <span class="label">SHIELD INTEGRITY</span>
+                <div id="healthContainer" class="shield-container">
+                    <!-- Bars injected by JS -->
+                </div>
+            </div>
+
+            <div class="speed-display">
+                <span class="label">VELOCITY</span>
+                <span id="speedValue" class="value">000</span> <span class="unit">KM/H</span>
+            </div>
+        </div>
+
+        <div class="hud-top-right">
+            <div class="cam-frame">
+                <video id="webcam" class="input_video" playsinline></video>
+                <canvas id="handsCanvas" class="output_canvas"></canvas>
+                <div class="cam-overlay">
+                    <div class="reticle"></div>
+                    <span class="cam-text">OPTICAL SENSOR</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lane Indicators (Optional HUD element) -->
+        <div class="hud-center-bottom">
+            <div class="lane-indicator" id="laneLeft"></div>
+            <div class="lane-indicator active" id="laneCenter"></div>
+            <div class="lane-indicator" id="laneRight"></div>
+        </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="gameOverScreen" class="ui-layer">
+        <div class="result-box">
+            <h2 class="glitch-text">CRITICAL FAILURE</h2>
+            <div class="result-stats">
+                <div class="stat-row">
+                    <span>DISTANCE</span>
+                    <span id="finalScore">0000</span>
+                </div>
+                <div class="stat-row highlight">
+                    <span>BEST</span>
+                    <span id="finalHighScore">0000</span>
+                </div>
+            </div>
+            <div class="game-over-controls">
+                <button id="btnRetry" class="menu-btn primary">REBOOT SYSTEM</button>
+                <button id="btnMenu" class="menu-btn">ABORT TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="ui-layer active" style="background: #000; z-index: 100;">
+        <div class="loader-content">
+            <div class="loading-bar">
+                <div class="progress"></div>
+            </div>
+            <p>ESTABLISHING CONNECTION...</p>
+            <button id="btnSkipCamera" class="menu-btn"
+                style="margin-top: 20px; font-size: 0.8em; padding: 10px 20px; opacity: 0; animation: fadeIn 2s forwards 3s;">
+                ⚠ SKIP CAMERA CHECK (MANUAL MODE)
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js?v=25"></script>
+</body>
+
+</html>
